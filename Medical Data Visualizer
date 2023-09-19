@@ -1,0 +1,41 @@
+import pandas as pd
+import seaborn as sns
+import matplotlib.pyplot as plt
+
+# Load the dataset
+df = pd.read_csv("medical_examination.csv")
+
+# Normalize the cholesterol and gluc columns
+df['cholesterol'] = df['cholesterol'].apply(lambda x: 0 if x == 1 else 1)
+df['gluc'] = df['gluc'].apply(lambda x: 0 if x == 1 else 1)
+
+# Create a chart using seaborn's catplot
+cat_vars = ['cholesterol', 'gluc', 'alco', 'active', 'smoke']
+for var in cat_vars:
+    plt.figure(figsize=(10, 6))
+    sns.catplot(data=df, x=var, hue='cardio', kind='count')
+    plt.title(f'Count of {var} by Cardio')
+    plt.xlabel(var)
+    plt.ylabel('Count')
+
+plt.show()
+# Calculate BMI
+df['bmi'] = df['weight'] / ((df['height'] / 100) ** 2)
+
+# Add overweight column
+df['overweight'] = df['bmi'].apply(lambda x: 1 if x > 25 else 0)
+# Remove incorrect data
+df = df[(df['ap_lo'] <= df['ap_hi']) &
+        (df['height'] >= df['height'].quantile(0.025)) &
+        (df['height'] <= df['height'].quantile(0.975)) &
+        (df['weight'] >= df['weight'].quantile(0.025)) &
+        (df['weight'] <= df['weight'].quantile(0.975))]
+# Create a correlation matrix
+corr_matrix = df.corr()
+
+# Create a heatmap
+mask = np.triu(corr_matrix)
+plt.figure(figsize=(12, 8))
+sns.heatmap(corr_matrix, annot=True, fmt='.1f', cmap='coolwarm', mask=mask)
+plt.title('Correlation Matrix')
+plt.show()
